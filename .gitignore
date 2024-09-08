@@ -53,3 +53,7 @@ dkms.conf
 
 # Output
 *.bin
+*.txt
+prim
+random_graph
+seq
