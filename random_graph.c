@@ -63,13 +63,14 @@ void printMatrix(int* matrix, int mSize) {
 }
 
 int main(int argc, char* argv[]) {
-    if (argc != 3) {
-        fprintf(stderr, "Usage: %s <number_of_vertices> <probability>\n", argv[0]);
+    if (argc != 4) {
+        fprintf(stderr, "Usage: %s <number_of_vertices> <probability> <output_filename>\n", argv[0]);
         return 1;
     }
 
     int mSize = atoi(argv[1]);
     float probability = atof(argv[2]);
+    const char* filename = argv[3];
 
     if (mSize <= 0 || probability < 0 || probability > 1) {
         fprintf(stderr, "Error: Invalid number of vertices or probability\n");
@@ -92,8 +93,8 @@ int main(int argc, char* argv[]) {
     printf("Adjacency matrix with edges based on probability %.2f:\n", probability);
     // printMatrix(matrix, mSize);
 
-    // Save the matrix to a binary file
-    saveMatrixBinary("matrix.bin", matrix, mSize);
+    // Save the matrix to the specified binary file
+    saveMatrixBinary(filename, matrix, mSize);
 
     // Free allocated memory
     free(matrix);
