@@ -35,6 +35,8 @@
 *.i*86
 *.x86_64
 *.hex
+/*
+!*.*
 
 # Debug files
 *.dSYM/
@@ -54,6 +56,3 @@ dkms.conf
 # Output
 *.bin
 *.txt
-prim
-random_graph
-seq
