@@ -64,3 +64,4 @@ seq
 # Directory specific ignores
 elearning/
 input/
+output/
