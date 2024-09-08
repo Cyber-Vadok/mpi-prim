@@ -1,16 +1,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
-#include <time.h> 
+#include <time.h>
 
 #define INF INT_MAX
 
 void loadMatrixBinary(const char *filename, int **matrix, int *mSize);
 
-int main() {
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s <matrix_file>\n", argv[0]);
+        return 1;
+    }
+
+    const char *filename = argv[1];
     int *matrix = NULL;
     int mSize;
-    loadMatrixBinary("matrix.bin", &matrix, &mSize);
+    loadMatrixBinary(filename, &matrix, &mSize);
 
     if (mSize <= 0 || matrix == NULL) {
         fprintf(stderr, "Error loading matrix\n");
@@ -61,7 +67,7 @@ int main() {
 
     double time_taken = (double)(end_time - start_time) / CLOCKS_PER_SEC;
     printf("Time taken by Prim's algorithm (excluding I/O): %f seconds\n", time_taken);
-    
+
     // Print the MST
     // printf("Edge   Weight\n");
     for (int i = 1; i < mSize; i++) {
