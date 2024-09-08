@@ -13,18 +13,25 @@ typedef struct { int v1; int v2; } Edge;
 void loadMatrixBinary(const char *filename, int **matrix, int *mSize);
 
 int main(int argc, char *argv[]){
-    
     MPI_Init(&argc, &argv);
     int rank, size;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
+    if (argc != 2) {
+        if (rank == 0) {
+            fprintf(stderr, "Usage: %s <matrix_file>\n", argv[0]);
+        }
+        MPI_Abort(MPI_COMM_WORLD, 1);
+    }
+
+    const char *filename = argv[1];
     int mSize;
     int *matrix = NULL;
 
-    if(rank == 0){
-        loadMatrixBinary("matrix.bin", &matrix, &mSize);
-        if (mSize == -1){
+    if (rank == 0) {
+        loadMatrixBinary(filename, &matrix, &mSize);
+        if (mSize == -1) {
             fprintf(stderr, "Error loading matrix\n");
             MPI_Abort(MPI_COMM_WORLD, 1);
         }
@@ -32,8 +39,8 @@ int main(int argc, char *argv[]){
 
     MPI_Bcast(&mSize, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-    int * displs = (int *)malloc(sizeof(int) * size);    // Displacements for each process
-    int * sendcounts = (int *)malloc(sizeof(int) * size); // Number of elements to send to each process
+    int *displs = (int *)malloc(sizeof(int) * size);    // Displacements for each process
+    int *sendcounts = (int *)malloc(sizeof(int) * size); // Number of elements to send to each process
 
     int rows_per_proc = mSize / size;    // Base number of rows per process
     int extra_rows = mSize % size;       // Number of extra rows to distribute
@@ -57,14 +64,14 @@ int main(int argc, char *argv[]){
 
     // Determine the number of rows this process will receive
     int local_rows = (rank < extra_rows) ? (rows_per_proc + 1) : rows_per_proc;
-    int * local_chunk = (int *)malloc(sizeof(int) * local_rows*mSize);
+    int *local_chunk = (int *)malloc(sizeof(int) * local_rows * mSize);
 
     // Now you can use MPI_Scatterv to distribute the matrix
     MPI_Scatterv(matrix, sendcounts, displs, MPI_INT, local_chunk, local_rows * mSize, MPI_INT, 0, MPI_COMM_WORLD);
 
-    int * parent = (int *)malloc(mSize * sizeof(int));
-    int * key = (int *)malloc(mSize * sizeof(int));
-    bool * mstSet = (bool *)malloc(mSize * sizeof(bool));
+    int *parent = (int *)malloc(mSize * sizeof(int));
+    int *key = (int *)malloc(mSize * sizeof(int));
+    bool *mstSet = (bool *)malloc(mSize * sizeof(bool));
 
     int totalWeight = 0;
 
@@ -82,16 +89,14 @@ int main(int argc, char *argv[]){
     MPI_Barrier(MPI_COMM_WORLD);
     double start = MPI_Wtime();
 
-    for (int k = 0 ; k < mSize - 1; k++){
-        
+    for (int k = 0; k < mSize - 1; k++){
         mstSet[va] = true;
-        
+
         for (int j = 0; j < local_rows; j++){
-
             int global_row = j + offset;
-            int edge_weight = local_chunk[j*mSize + va];
+            int edge_weight = local_chunk[j * mSize + va];
 
-            if(edge_weight && mstSet[global_row] == false && edge_weight < key[global_row]){
+            if (edge_weight && !mstSet[global_row] && edge_weight < key[global_row]){
                 parent[global_row] = va;
                 key[global_row] = edge_weight;
             }
@@ -102,7 +107,7 @@ int main(int argc, char *argv[]){
 
         for (int i = 0; i < local_rows; i++){
             int global_row = i + offset;
-            if (mstSet[global_row] == false && key[global_row] < min){
+            if (!mstSet[global_row] && key[global_row] < min){
                 min = key[global_row];
                 vb = global_row;
             }
@@ -115,7 +120,7 @@ int main(int argc, char *argv[]){
         localWR.rank = rank;
 
         MPI_Allreduce(&localWR, &minWR, 1, MPI_2INT, MPI_MINLOC, MPI_COMM_WORLD);
-        
+
         edge.v1 = parent[vb];
         edge.v2 = vb;
 
@@ -125,7 +130,7 @@ int main(int argc, char *argv[]){
             totalWeight += minWR.weight;
             key[edge.v2] = minWR.weight;
             parent[edge.v2] = edge.v1;
-            va = edge.v2; //new
+            va = edge.v2;
         }
     }
 
@@ -133,20 +138,20 @@ int main(int argc, char *argv[]){
     MPI_Barrier(MPI_COMM_WORLD);
     double finish, calc_time; 
     finish = MPI_Wtime();
-    calc_time = finish-start;
+    calc_time = finish - start;
 
     if (rank == 0) {
         f_result = fopen("Result.txt", "w");
-        fprintf(f_result,"The min minWeight is %d\n", totalWeight);
-        for (int i=1; i< mSize; ++i) {
-            fprintf(f_result,"Edge %d %d\n",i, parent[i]);
+        fprintf(f_result, "The minWeight is %d\n", totalWeight);
+        for (int i = 1; i < mSize; ++i) {
+            fprintf(f_result, "Edge %d %d\n", i, parent[i]);
         }
         fclose(f_result);
 
         f_time = fopen("Time.txt", "a+");
-        fprintf(f_time, "\n Number of processors: %d\n Number of vertices: %d\n Time of execution: %f\n Total Weight: %d\n\n", size, mSize ,calc_time, totalWeight);
+        fprintf(f_time, "\nNumber of processors: %d\nNumber of vertices: %d\nTime of execution: %f\nTotal Weight: %d\n\n", size, mSize, calc_time, totalWeight);
         fclose(f_time);
-        printf("\n Number of processors: %d\n Number of vertices: %d\n Time of execution: %f\n Total Weight: %d\n\n", size, mSize ,calc_time, totalWeight);
+        printf("\nNumber of processors: %d\nNumber of vertices: %d\nTime of execution: %f\nTotal Weight: %d\n\n", size, mSize, calc_time, totalWeight);
     }
 
     if (rank == 0){
