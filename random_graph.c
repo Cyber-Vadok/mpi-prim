@@ -31,23 +31,23 @@ void saveMatrixText(const char* filename, int* matrix, int mSize) {
 
 void generateRandomAdjMatrix(int* matrix, int mSize, float probability) {
     int i, j;
-    int maxWeight = mSize * mSize;  // Valore massimo per il peso
+    int maxWeight = mSize * mSize;  // Max weight for the edges
 
-    // Inizializza la matrice di adiacenza con 0 (nessun arco all'inizio)
+    // Initialize the adjacency matrix with 0 (no edges initially)
     for (i = 0; i < mSize; i++) {
         for (j = 0; j < mSize; j++) {
             matrix[i * mSize + j] = 0;
         }
     }
 
-    // Riempie la parte superiore della matrice con archi casuali in base alla probabilità
+    // Fill the upper triangular part of the matrix with random edges based on probability
     for (i = 0; i < mSize; i++) {
         for (j = i + 1; j < mSize; j++) {
-            // Determina se creare un arco con una certa probabilità
+            // Determine if an edge should be created based on probability
             if ((float)rand() / RAND_MAX < probability) {
-                int weight = rand() % maxWeight + 1;  // Pesi casuali distinti tra 1 e maxWeight
+                int weight = rand() % maxWeight + 1;  // Random weights between 1 and maxWeight
                 matrix[i * mSize + j] = weight;
-                matrix[j * mSize + i] = weight;  // Matrice simmetrica (grafo non orientato)
+                matrix[j * mSize + i] = weight;  // Symmetric matrix (undirected graph)
             }
         }
     }
@@ -62,30 +62,40 @@ void printMatrix(int* matrix, int mSize) {
     }
 }
 
-int main() {
-    int mSize;
-    float probability;
-    srand(time(NULL));
+int main(int argc, char* argv[]) {
+    if (argc != 3) {
+        fprintf(stderr, "Usage: %s <number_of_vertices> <probability>\n", argv[0]);
+        return 1;
+    }
 
-    printf("Inserisci la dimensione della matrice di adiacenza (numero di vertici): ");
-    scanf("%d", &mSize);
-    
-    printf("Inserisci la probabilità di esistenza di un arco (tra 0 e 1): ");
-    scanf("%f", &probability);
+    int mSize = atoi(argv[1]);
+    float probability = atof(argv[2]);
 
-    // Allocazione della matrice di adiacenza
+    if (mSize <= 0 || probability < 0 || probability > 1) {
+        fprintf(stderr, "Error: Invalid number of vertices or probability\n");
+        return 1;
+    }
+
+    srand(time(NULL));  // Seed the random number generator
+
+    // Allocate memory for the adjacency matrix
     int* matrix = (int*)malloc(mSize * mSize * sizeof(int));
+    if (matrix == NULL) {
+        perror("Error allocating memory");
+        return 1;
+    }
 
-    // Genera la matrice di adiacenza casuale con archi distinti in base alla probabilità
+    // Generate the random adjacency matrix with edges based on the probability
     generateRandomAdjMatrix(matrix, mSize, probability);
 
-    // Stampa la matrice generata
-    printf("Matrice di adiacenza con archi non completi (con probabilità %.2f):\n", probability);
+    // Print the matrix generated (optional)
+    printf("Adjacency matrix with edges based on probability %.2f:\n", probability);
     // printMatrix(matrix, mSize);
 
+    // Save the matrix to a binary file
     saveMatrixBinary("matrix.bin", matrix, mSize);
 
-    // Libera la memoria
+    // Free allocated memory
     free(matrix);
 
     return 0;
