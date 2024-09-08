@@ -22,17 +22,21 @@ RANDOM_GRAPH_OBJ = $(RANDOM_GRAPH_SRC:.c=.o)
 # Default target
 all: $(PRIM_EXEC) $(SEQ_EXEC) $(RANDOM_GRAPH_EXEC)
 
-# Rule for prim (using mpicc)
+# Rule for prim (MPI program)
 $(PRIM_EXEC): $(PRIM_OBJ)
 	$(MPICC) -o $@ $^ $(LDFLAGS)
 
-# Rule for seq
-$(SEQ_EXEC): $(SEQ_OBJ)
-	$(CC) -o $@ $^ $(LDFLAGS)
+# Compile prim.o with mpicc (for MPI program)
+prim.o: prim.c
+	$(MPICC) $(CFLAGS) -c -o $@ $<
 
-# Rule for random_graph
+# Rule for seq (sequential program)
+$(SEQ_EXEC): $(SEQ_OBJ)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+# Rule for random_graph (sequential program)
 $(RANDOM_GRAPH_EXEC): $(RANDOM_GRAPH_OBJ)
-	$(CC) -o $@ $^ $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 # Clean target to remove executables and object files
 clean:

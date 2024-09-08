@@ -78,8 +78,9 @@ int main(int argc, char *argv[]){
     int va = 0;
     int offset = displs[rank] / mSize;
 
-    double start; 
-    start = MPI_Wtime();
+    // Synchronize all processes before starting the timer
+    MPI_Barrier(MPI_COMM_WORLD);
+    double start = MPI_Wtime();
 
     for (int k = 0 ; k < mSize - 1; k++){
         
@@ -128,6 +129,8 @@ int main(int argc, char *argv[]){
         }
     }
 
+    // Synchronize all processes before stopping the timer
+    MPI_Barrier(MPI_COMM_WORLD);
     double finish, calc_time; 
     finish = MPI_Wtime();
     calc_time = finish-start;
