@@ -7,6 +7,7 @@
 
 FILE *f_result;
 FILE *f_time;
+FILE *f_log;
 
 typedef struct { int v1; int v2; } Edge;
 
@@ -73,7 +74,7 @@ int main(int argc, char *argv[]){
     int *key = (int *)malloc(mSize * sizeof(int));
     bool *mstSet = (bool *)malloc(mSize * sizeof(bool));
 
-    int totalWeight = 0;
+    long totalWeight = 0;
 
     for (int i = 0; i < mSize; i++){
         key[i] = INT_MAX;
@@ -141,17 +142,21 @@ int main(int argc, char *argv[]){
     calc_time = finish - start;
 
     if (rank == 0) {
-        f_result = fopen("Result.txt", "w");
-        fprintf(f_result, "The minWeight is %d\n", totalWeight);
+        f_result = fopen("output/Result.txt", "w");
+        fprintf(f_result, "The minWeight is %ld\n", totalWeight);
         for (int i = 1; i < mSize; ++i) {
             fprintf(f_result, "Edge %d %d\n", i, parent[i]);
         }
         fclose(f_result);
 
-        f_time = fopen("Time.txt", "a+");
-        fprintf(f_time, "\nNumber of processors: %d\nNumber of vertices: %d\nTime of execution: %f\nTotal Weight: %d\n\n", size, mSize, calc_time, totalWeight);
+        f_log = fopen("output/Log.txt", "a+");
+        fprintf(f_log, "\nNumber of processors: %d\nNumber of vertices: %d\nTime of execution: %f\nTotal Weight: %ld\n\n", size, mSize, calc_time, totalWeight);
+        fclose(f_log);
+        printf("\nNumber of processors: %d\nNumber of vertices: %d\nTime of execution: %f\nTotal Weight: %ld\n\n", size, mSize, calc_time, totalWeight);
+
+        f_time = fopen("output/Time.txt", "w");
+        fprintf(f_time, "%f", calc_time);
         fclose(f_time);
-        printf("\nNumber of processors: %d\nNumber of vertices: %d\nTime of execution: %f\nTotal Weight: %d\n\n", size, mSize, calc_time, totalWeight);
     }
 
     if (rank == 0){
