@@ -66,5 +66,6 @@ seq
 
 # Directory specific ignores
 elearning/
+bkp/
 input/
 output/
