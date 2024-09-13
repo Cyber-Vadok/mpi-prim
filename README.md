@@ -1,2 +1,2 @@
-make per compilare
-bench.sh per fare i benchmark
+* make per compilare
+* bench.sh per fare i benchmark
