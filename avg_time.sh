@@ -41,7 +41,7 @@ for prob in "${probabilities[@]}"; do
                 mpirun -np "$proc" ./prim "input/$prob/$size.bin"
                 
                 # Read the execution time from Time.txt
-                time=$(cat Time.txt)
+                time=$(cat output/Time.txt)
                 total_time=$(echo "$total_time + $time" | bc)
                 
                 echo "Problem $problem, Processors: $proc, Matrix Size: $size, Iteration $i, Time: $time"

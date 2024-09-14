@@ -37,4 +37,4 @@ for index, row in df.iterrows():
 # Save the updated dataframe to a new CSV file
 df.to_csv("output/metrics.csv", index=False)
 
-print("Metrics calculation (Speedup, Efficiency, Karp-Flatt) completed and saved to metrics.csv.csv")
+print("Metrics calculation (Speedup, Efficiency, Karp-Flatt) completed and saved to metrics.csv")
